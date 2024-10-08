@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import * as d3 from 'd3';
+import { reactive, onMounted } from 'vue';
+import { scaleLinear, zoom, select } from 'd3';
 
-const width = 400;
-const height = 500;
+const width = 600;
+const height = 800;
 const rectH = 40;
 const rectW = 80;
 
@@ -16,11 +16,11 @@ const myData = [
 
 const arcs = new Array(myData.length - 1);
 
-const scaleX = d3.scaleLinear().domain([0, 100]).range([0, width]);
-const scaleY = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+const scaleX = scaleLinear().domain([0, 100]).range([0, width]);
+const scaleY = scaleLinear().domain([0, 100]).range([0, height]);
 
 const getRectX = () => scaleX(50) - rectW / 2; // center rect
-const getRectY = (index) => scaleY(rectH / 2 + index * (rectH / 2));
+const getRectY = (index: number) => scaleY(20 +index * (rectH / 2));
 
 // Zooming related:
 const transformation = reactive({
@@ -29,7 +29,7 @@ const transformation = reactive({
   scale: 1,
 });
 
-const zoomFn = d3.zoom().on('zoom', (event) => {
+const zoomFn = zoom().on('zoom', (event) => {
   const { x, y, k } = event.transform;
   transformation.x = x;
   transformation.y = y;
@@ -37,18 +37,17 @@ const zoomFn = d3.zoom().on('zoom', (event) => {
 });
 
 onMounted(() => {
-  d3.select('svg').call(zoomFn);
+  select('svg').call(zoomFn);
 });
 </script>
 
 <template>
-  <div>My data</div>
-  <svg :width="width" :height="height">
+  <svg :width="width" :height="height" style="border: 1px solid green;">
     <g
       :transform="`translate(${transformation.x}, ${transformation.y}) scale(${transformation.scale})`"
     >
       <line
-        v-for="(dataEntry, index) in arcs"
+        v-for="(_, index) in arcs"
         :key="index"
         :x1="scaleX(50)"
         :y1="getRectY(index)"
@@ -65,6 +64,15 @@ onMounted(() => {
         :x="getRectX()"
         :y="getRectY(index)"
       />
+
+      <text
+        v-for="(dataEntry, index) in myData"
+        :key="dataEntry.name"
+        :x="getRectX() + rectW / 4"
+        :y="getRectY(index) + rectH / 2"
+        fill="white"
+      > {{ dataEntry.name }}
+      </text>
     </g>
   </svg>
 </template>
